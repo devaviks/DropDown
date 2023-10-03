@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">DropDown</string>
+    <string name="title_activity_second">SecondActivity</string>
+    <string name="title_activity_third">ThirdActivity</string>
+    <string name="name">Name:</string>
+    <string name="gender">Gender:</string>
+    <string name="country">Country:</string>
+    <string name="state">State:</string>
+    <string name="title_activity_main2">MainActivity2</string>
+</resources>
