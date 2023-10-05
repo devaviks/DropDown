@@ -1,6 +1,8 @@
 package com.example.dropdown
 
+import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -27,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.dropdown.ui.theme.DropDownTheme
 
+
 class SecondActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,12 +41,15 @@ class SecondActivity : ComponentActivity() {
     }
 }
 
+
+
 @Composable
 fun DisplayDataScreen() {
     val context = LocalContext.current
     val dbHandler = DBHandler(context)
 
     var courses by remember { mutableStateOf<List<Course>>(emptyList()) }
+    var selectedCourses : MutableList<Course> = mutableListOf()
 
     LaunchedEffect(Unit) {
         val data = dbHandler.getAllCourses()
@@ -65,6 +71,7 @@ fun DisplayDataScreen() {
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
+                .weight(1f)
         ) {
             items(courses) { course ->
                 Card(
@@ -74,8 +81,9 @@ fun DisplayDataScreen() {
                         .shadow(4.dp)
                         .clickable {
                             course.isSelected = !course.isSelected
+                            selectedCourses.add(course)
                         }
-                        .background(if (course.isSelected) Color.Yellow else Color.White), // Change card background color if selected
+                        .background(if (course.isSelected) Color.Yellow else Color.White),
                     shape = MaterialTheme.shapes.medium,
                 ) {
                     Column(
@@ -99,6 +107,19 @@ fun DisplayDataScreen() {
             }
         }
 
+        Button(
+            onClick = {
+                val intent = Intent(context, ThirdActivity::class.java)
+                intent.putParcelableArrayListExtra("selectedCourses", ArrayList(selectedCourses))
+                context.startActivity(intent)
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Text(text = "Create Group")
+        }
     }
 }
+
 
