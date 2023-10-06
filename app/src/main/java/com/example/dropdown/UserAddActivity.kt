@@ -5,7 +5,6 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.os.Parcelable
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -27,11 +26,9 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.example.dropdown.ui.theme.greenColor
-import kotlinx.android.parcel.Parcelize
 
 
-
-class MainActivity : ComponentActivity() {
+class UserAddActivity : ComponentActivity() {
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -282,6 +279,7 @@ fun addDataToDatabase(
 
         Button(onClick = {
             val course = Course(
+                _id = -1,
                 salutation = selectedSalutation.value,
                 name = courseDuration.value.text,
                 country = selectedCountry.value,
@@ -289,7 +287,9 @@ fun addDataToDatabase(
                 gender = selectedGender.value
             )
             dbHandler.addNewCourse(course)
-            val intent = Intent(context, SecondActivity::class.java)
+
+
+            val intent = Intent(context, UserListActivity::class.java)
             context.startActivity(intent)
 
             Toast.makeText(context, "Details Added to Database", Toast.LENGTH_SHORT).show()

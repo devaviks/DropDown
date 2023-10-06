@@ -30,7 +30,7 @@ import androidx.compose.ui.unit.sp
 import com.example.dropdown.ui.theme.DropDownTheme
 
 
-class SecondActivity : ComponentActivity() {
+class UserListActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -118,7 +118,7 @@ fun DisplayDataScreen() {
 
         Button(
             onClick = {
-                val intent = Intent(context, ThirdActivity::class.java)
+                val intent = Intent(context, GroupCreateActivity::class.java)
                 intent.putParcelableArrayListExtra("selectedCourses", ArrayList(selectedCourses))
                 context.startActivity(intent)
             },

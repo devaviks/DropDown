@@ -2,8 +2,10 @@
 package com.example.dropdown
 
 
+import android.app.Activity
 import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -29,35 +31,42 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.dropdown.ui.theme.DropDownTheme
 
-class ThirdActivity : ComponentActivity() {
+class GroupCreateActivity : ComponentActivity() {
+
+    lateinit  var context: Context
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        context = this
         setContent {
             @Suppress("DEPRECATION")
             val selectedCourses =
                 intent.getParcelableArrayListExtra<Course>("selectedCourses") ?: emptyList()
 
             DropDownTheme {
-                DisplaySelectedCoursesScreen(selectedCourses)
+                DisplayUserAndGroupData(selectedCourses)
             }
         }
     }
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    fun DisplaySelectedCoursesScreen(selectedCourses: List<Course>) {
+    fun DisplayUserAndGroupData(selectedCourses: List<Course>) {
         var groupName by remember { mutableStateOf("") }
         var savedData by remember { mutableStateOf<List<String>>(emptyList()) }
-
+        val dbHandler: DBHandler = DBHandler(context)
         // Load the group name and saved data from SharedPreferences when the screen is created
-        val sharedPreferences = getSharedPreferences("GroupData", Context.MODE_PRIVATE)
-        groupName = sharedPreferences.getString("groupName", "") ?: ""
-        savedData = getSavedData(groupName, selectedCourses)
+        //val sharedPreferences = getSharedPreferences("GroupData", Context.MODE_PRIVATE)
+       // groupName = sharedPreferences.getString("groupName", "") ?: ""
+
+        //savedData = getSavedData(groupName, selectedCourses)
 
         Column(
             modifier = Modifier
@@ -92,11 +101,31 @@ class ThirdActivity : ComponentActivity() {
                     val groupNameText = textValue.trim()
                     if (groupNameText.isNotEmpty()) {
                         // Save the group name to SharedPreferences
-                        saveGroupNameToSharedPreferences(groupNameText)
+                        //saveGroupNameToSharedPreferences(groupNameText)
 
                         // Update the saved data list
-                        savedData = getSavedData(groupNameText, selectedCourses)
+                        //savedData = getSavedData(groupNameText, selectedCourses)
                         groupName = groupNameText // Set the group name
+
+                        if(groupName.isNotEmpty()){
+                            val groupId = dbHandler.addGroup(groupName)
+                            var index = 0
+                            while (index < selectedCourses.size) {
+                                val userId = selectedCourses[index]._id
+
+                                if (userId != null) {
+                                    dbHandler.addGroupUser(userId.toLong(),groupId)
+                                }
+                                // Perform actions on obj
+                                Log.e("USERIDS=========================", userId.toString())
+
+                                index++
+                            }
+
+                        }
+
+
+
                     }
                 },
                 modifier = Modifier
@@ -152,12 +181,12 @@ class ThirdActivity : ComponentActivity() {
         }
     }
 
-    private fun saveGroupNameToSharedPreferences(groupName: String) {
+    /*private fun saveGroupNameToSharedPreferences(groupName: String) {
         val sharedPreferences = getSharedPreferences("GroupData", Context.MODE_PRIVATE)
         val editor = sharedPreferences.edit()
         editor.putString("groupName", groupName)
         editor.apply()
-    }
+    }*/
 
     private fun getSavedData(groupName: String, selectedCourses: List<Course>): List<String> {
         val savedDataList = mutableListOf<String>()
@@ -169,11 +198,13 @@ class ThirdActivity : ComponentActivity() {
             // Add course names to the saved data list as a comma-separated string
             val groupMembers = selectedCourses.joinToString(", ") { course -> course.name }
             savedDataList.add("Group Members: $groupMembers")
+
         }
 
         return savedDataList
     }
 }
+
 
 
 
