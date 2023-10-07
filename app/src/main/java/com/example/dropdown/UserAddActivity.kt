@@ -38,30 +38,38 @@ class UserAddActivity : ComponentActivity() {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                 ) {
-                    TopAppBar(
-                        title = { Text(text = "Your Title") },
-                        navigationIcon = {
-                            IconButton(
-                                onClick = {
-                                    // Perform an action when the left button is clicked
-                                    val intent = Intent(this@UserAddActivity, ViewGroupDetailsActivity::class.java)
-                                    startActivity(intent)
+                    Scaffold {
+                        TopAppBar(
+                            title = { Text(text = "") },
+                            navigationIcon = {
+                                TextButton(
+                                    onClick = {
+                                        // Perform an action when the left button is clicked
+                                        val intent = Intent(
+                                            this@UserAddActivity,
+                                            ViewGroupDetailsActivity::class.java
+                                        )
+                                        startActivity(intent)
+                                    }
+                                ) {
+                                    Text("View Group Details")
                                 }
-                            ) {
-                                Text("Left Button")
-                            }
-                        },
-                        actions = {
-                            IconButton(
-                                onClick = {
-                                    val intent = Intent(this@UserAddActivity, UserListActivity::class.java)
-                                    startActivity(intent)
+                            },
+                            actions = {
+                                TextButton(
+                                    onClick = {
+                                        val intent = Intent(
+                                            this@UserAddActivity,
+                                            UserListActivity::class.java
+                                        )
+                                        startActivity(intent)
+                                    }
+                                ) {
+                                    Text("View User Details")
                                 }
-                            ) {
-                                Text("Right Button")
-                            }
-                        },
-                    )
+                            },
+                        )
+                    }
                     // Add the content of your form or other components below the app bar
                     addDataToDatabase(LocalContext.current)
                 }
