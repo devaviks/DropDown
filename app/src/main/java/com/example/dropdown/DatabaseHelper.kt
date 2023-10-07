@@ -157,6 +157,57 @@ class DBHandler(context: Context) :
 
         return courses
     }
+
+    @SuppressLint("Range")
+    fun getGroupUserDetails(): List<GroupUserDetails> {
+        val detailsList = mutableListOf<GroupUserDetails>()
+
+        val query = """
+        SELECT
+            g.group_name,
+            u.salutation,
+            u.name,
+            u.country,
+            u.state,
+            u.gender
+        FROM
+            $TABLE_NAME_GROUP_USERS gu
+        JOIN
+            $TABLE_NAME_GROUP g ON gu.group_id = g.$PK_ID
+        JOIN
+            $TABLE_NAME_USER u ON gu.user_id = u.$PK_ID
+    """
+
+        val db = this.readableDatabase
+        val cursor = db.rawQuery(query, null)
+
+        cursor.use { c ->
+            while (c.moveToNext()) {
+                val groupName = c.getString(c.getColumnIndex("group_name"))
+                val salutation = c.getString(c.getColumnIndex("salutation"))
+                val name = c.getString(c.getColumnIndex("name"))
+                val country = c.getString(c.getColumnIndex("country"))
+                val state = c.getString(c.getColumnIndex("state"))
+                val gender = c.getString(c.getColumnIndex("gender"))
+
+                val groupUserDetails = GroupUserDetails(
+                    groupName,
+                    salutation,
+                    name,
+                    country,
+                    state,
+                    gender
+                )
+
+                detailsList.add(groupUserDetails)
+            }
+        }
+
+        cursor.close()
+        db.close()
+
+        return detailsList
+    }
 }
 
 

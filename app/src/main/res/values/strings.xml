@@ -7,4 +7,5 @@
     <string name="country">Country:</string>
     <string name="state">State:</string>
     <string name="title_activity_main2">MainActivity2</string>
+    <string name="title_activity_view_group_details">ViewGroupDetailsActivity</string>
 </resources>
