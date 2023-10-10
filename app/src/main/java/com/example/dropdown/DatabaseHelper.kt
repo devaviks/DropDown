@@ -22,6 +22,7 @@ class DBHandler(context: Context) :
         private const val COUNTRY_COL = "country"
         private const val STATE_COL = "state"
         private const val GENDER_COL = "gender"
+        private const val IMAGE_COL = "imageBase64"
 
 
         const val COLUMN_GROUP_NAME = "group_name"
@@ -38,7 +39,8 @@ class DBHandler(context: Context) :
                 + NAME_COL + " TEXT,"
                 + COUNTRY_COL + " TEXT,"
                 + STATE_COL + " TEXT,"
-                + GENDER_COL + " TEXT)")
+                + GENDER_COL + " TEXT,"
+                + IMAGE_COL + " TEXT)")
 
         val createGroupTableSQL = ("CREATE TABLE IF NOT EXISTS " + TABLE_NAME_GROUP + " ("
                 + PK_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
@@ -69,6 +71,7 @@ class DBHandler(context: Context) :
         values.put(COUNTRY_COL, course.country)
         values.put(STATE_COL, course.state)
         values.put(GENDER_COL, course.gender)
+        values.put(IMAGE_COL, course.imageBase64)
         db.insert(TABLE_NAME_USER, null, values)
         db.close()
     }
@@ -84,7 +87,6 @@ class DBHandler(context: Context) :
             return insertedId
         } catch (e: Exception) {
             db.close()
-            // Handle the exception, e.g., log it or throw it further.
             throw e
         }
     }
@@ -131,12 +133,17 @@ class DBHandler(context: Context) :
 
 
     @SuppressLint("Range")
-    fun getAllCourses(): List<Course> {
+    fun getAllCourses(pageNumber: Int, pageSize: Int): List<Course> {
         val courses = mutableListOf<Course>()
         val db = this.readableDatabase
 
-        val columns = arrayOf(PK_ID, SALUTATION_COL, NAME_COL, COUNTRY_COL, STATE_COL, GENDER_COL)
-        val cursor = db.query(TABLE_NAME_USER, columns, null, null, null, null, null)
+        val offset = pageNumber * pageSize
+
+        val columns = arrayOf(PK_ID, SALUTATION_COL, NAME_COL, COUNTRY_COL, STATE_COL, GENDER_COL, IMAGE_COL)
+        val orderBy = "$PK_ID ASC"
+        val limit = "$offset, $pageSize"
+
+        val cursor = db.query(TABLE_NAME_USER, columns, null, null, null, null, orderBy, limit)
 
         cursor?.use { c ->
             while (c.moveToNext()) {
@@ -146,8 +153,9 @@ class DBHandler(context: Context) :
                 val country = c.getString(c.getColumnIndex(COUNTRY_COL))
                 val state = c.getString(c.getColumnIndex(STATE_COL))
                 val gender = c.getString(c.getColumnIndex(GENDER_COL))
+                val imageBase64 = c.getString(c.getColumnIndex(IMAGE_COL))
 
-                val course = Course( id,salutation, name, country, state, gender)
+                val course = Course(id, salutation, name, country, state, gender, imageBase64)
                 courses.add(course)
             }
         }
@@ -157,6 +165,7 @@ class DBHandler(context: Context) :
 
         return courses
     }
+
 
     @SuppressLint("Range")
     fun getGroupUserDetails(): List<GroupUserDetails> {

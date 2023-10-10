@@ -14,21 +14,19 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.paging.LoadState
+import androidx.paging.Pager
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.dropdown.ui.theme.DropDownTheme
-
+import androidx.paging.PagingConfig
+import androidx.paging.compose.LazyPagingItems
 
 class UserListActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -41,19 +39,27 @@ class UserListActivity : ComponentActivity() {
     }
 }
 
-@SuppressLint("MutableCollectionMutableState")
+@SuppressLint("MutableCollectionMutableState", "RememberReturnType")
 @Composable
 fun DisplayDataScreen() {
     val context = LocalContext.current
     val dbHandler = DBHandler(context)
+    val pagingConfig = PagingConfig(
+        pageSize = 6,
+        enablePlaceholders = false
+    )
 
-    var courses by remember { mutableStateOf<List<Course>>(emptyList()) }
-    var selectedCourses: MutableList<Course> by remember { mutableStateOf(mutableListOf()) }
-
-    LaunchedEffect(Unit) {
-        val data = dbHandler.getAllCourses()
-        courses = data
+    val pager = remember {
+        Pager(
+            config = pagingConfig,
+            pagingSourceFactory = { CoursePagingSource(dbHandler, PAGE_SIZE) }
+        )
     }
+
+    val lazyPagingItems: LazyPagingItems<Course> = pager.flow.collectAsLazyPagingItems()
+    val loadState = lazyPagingItems.loadState
+
+    val selectedCourses by remember { mutableStateOf(mutableListOf<Course>()) }
 
     Column(
         modifier = Modifier
@@ -70,20 +76,23 @@ fun DisplayDataScreen() {
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(1f)
+                .weight(1f),
         ) {
-            items(courses) { course ->
-                var isSelected by remember { mutableStateOf(course.isSelected) }
+            items(lazyPagingItems.itemCount) { index ->
+                val course = lazyPagingItems[index]
+                var isSelected by remember { mutableStateOf(course?.isSelected ?: false) }
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(8.dp)
                         .clickable {
                             isSelected = !isSelected
-                            if (isSelected) {
-                                selectedCourses.add(course)
-                            } else {
-                                selectedCourses.remove(course)
+                            course?.let {
+                                if (isSelected) {
+                                    selectedCourses.add(it)
+                                } else {
+                                    selectedCourses.remove(it)
+                                }
                             }
                         }
                         .background(
@@ -91,7 +100,7 @@ fun DisplayDataScreen() {
                         )
                         .border(
                             width = 2.dp,
-                            color = if (isSelected) Color.Blue else Color.Transparent // Set the border color for selected item
+                            color = if (isSelected) Color.Blue else Color.Transparent
                         ),
                     shape = MaterialTheme.shapes.medium,
                 ) {
@@ -100,11 +109,11 @@ fun DisplayDataScreen() {
                             .fillMaxWidth()
                             .padding(16.dp)
                     ) {
-                        Text(text = "Salutation: ${course.salutation}")
-                        Text(text = "Name: ${course.name}")
-                        Text(text = "Country: ${course.country}")
-                        Text(text = "State: ${course.state}")
-                        Text(text = "Gender: ${course.gender}")
+                        Text(text = "Salutation: ${course?.salutation ?: ""}")
+                        Text(text = "Name: ${course?.name ?: ""}")
+                        Text(text = "Country: ${course?.country ?: ""}")
+                        Text(text = "State: ${course?.state ?: ""}")
+                        Text(text = "Gender: ${course?.gender ?: ""}")
                         Divider(
                             color = Color.Gray,
                             modifier = Modifier
@@ -114,12 +123,33 @@ fun DisplayDataScreen() {
                     }
                 }
             }
+
+            // Show a loading indicator at the end when data is being loaded
+            if (loadState.append is LoadState.Loading) {
+                item {
+                    CircularProgressIndicator(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                    )
+                }
+            }
+
+            // Handle error state
+            if (loadState.refresh is LoadState.Error) {
+                item {
+                    val errorState = loadState.refresh as LoadState.Error
+                }
+            }
         }
 
         Button(
             onClick = {
                 val intent = Intent(context, GroupCreateActivity::class.java)
-                intent.putParcelableArrayListExtra("selectedCourses", ArrayList(selectedCourses))
+                intent.putParcelableArrayListExtra(
+                    "selectedCourses",
+                    ArrayList(selectedCourses)
+                )
                 context.startActivity(intent)
             },
             modifier = Modifier
@@ -131,6 +161,4 @@ fun DisplayDataScreen() {
     }
 }
 
-
-
-
+ private const val PAGE_SIZE = 6

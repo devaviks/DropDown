@@ -11,5 +11,6 @@ data class Course(
     val country: String,
     val state: String,
     val gender: String,
+    val imageBase64: String, // Add the imageBase64 property
     var isSelected: Boolean = false
 ): Parcelable
